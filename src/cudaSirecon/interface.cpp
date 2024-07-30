@@ -69,7 +69,7 @@ extern "C"
   {
     sr->closeFiles();
   }
-  DllExport char * get_version()
+  DllExport const char* get_version()
   {
     return PROJECT_VERSION;
   }

@@ -16,7 +16,6 @@ set_target_properties(cudasirecon
   WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 target_link_libraries(
   cudasirecon
-  PRIVATE
   Buffer
   ${TIFF_LIBRARIES}
   ${LAPACK_LIBRARIES}
