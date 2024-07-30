@@ -16,6 +16,7 @@ set_target_properties(cudasirecon
   WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 target_link_libraries(
   cudasirecon
+  PRIVATE
   Buffer
   ${TIFF_LIBRARIES}
   ${LAPACK_LIBRARIES}
@@ -23,7 +24,9 @@ target_link_libraries(
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${IMLIB}
-  ${IVELIB})
+  ${IVELIB}
+  CUDA::cufft
+)
   
   
 # cudasirecon executable file
