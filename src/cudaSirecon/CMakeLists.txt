@@ -10,7 +10,6 @@ message(STATUS "LAPACK_FOUND: " ${LAPACK_FOUND})
 
 # libcudasirecon shared library
 add_library(cudasirecon SHARED cudaSirecon.cpp boostfs.cpp gpuFunctionsImpl.cu interface.cpp)
-cuda_add_cufft_to_target(cudasirecon)
 set_target_properties(cudasirecon
   PROPERTIES
   MSVC_RUNTIME_LIBRARY ""
@@ -29,7 +28,6 @@ target_link_libraries(
   
 # cudasirecon executable file
 add_executable(cudaSireconDriver cudaSireconDriver.cpp)
-cuda_add_cufft_to_target(cudaSireconDriver)
 target_link_libraries(cudaSireconDriver cudasirecon)
 target_include_directories(cudaSireconDriver PUBLIC "${PROJECT_BINARY_DIR}")
 set_target_properties(cudaSireconDriver
