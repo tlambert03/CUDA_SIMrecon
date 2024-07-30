@@ -2,16 +2,14 @@
 #include "cudaSirecon.h"
 #include "cudaSireconImpl.h"
 #include "SIM_reconstructor.hpp"
-#include "cudasireconConfig.h"
+#include "version.h"
 #include <boost/filesystem.hpp>
 
 #ifdef MRC
 #include "mrc.h"
 #endif
 
-std::string version_number = std::to_string(cudasirecon_VERSION_MAJOR) + "." +
-                             std::to_string(cudasirecon_VERSION_MINOR) + "." +
-                             std::to_string(cudasirecon_VERSION_PATCH);
+std::string version_number = std::string(PROJECT_VERSION);
 
 void SetDefaultParams(ReconParams *pParams)
 {
