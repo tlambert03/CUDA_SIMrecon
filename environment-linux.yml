@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - cmake
-  - cuda-12
+  - cuda-version=12
   - cuda-nvcc
   - fftw
   - libboost-devel
