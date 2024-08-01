@@ -104,6 +104,9 @@ class DVFile {
   IW_MRC_Header hdr;
   bool closed = true;
 
+  // Private default constructor
+  DVFile() = default;
+
  public:
   // Constructor for opening an existing file
   DVFile(const std::string& path) {
@@ -132,7 +135,7 @@ class DVFile {
   }
 
   static std::unique_ptr<DVFile> createNew(const std::string& path) {
-    std::unique_ptr<DVFile> dvfile = std::make_unique<DVFile>();
+    std::unique_ptr<DVFile> dvfile(new DVFile());  // Use the private default constructor
     dvfile->_path = path;
     dvfile->_file = std::make_unique<std::fstream>(
         path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
@@ -430,8 +433,56 @@ inline void IMWrSec(int istream, const void* array) {
   }
 }
 
+/**
+ * @brief Put an entire header into a stream.
+ *
+ * Header should point to a memory location that contains a complete image header.
+ *
+ * @param istream The input stream to be used for the operation.
+ * @param header The header to be saved in the stream.
+ */
 inline void IMPutHdr(int istream, const IW_MRC_HEADER* header) {
   getDVFile(istream).putHeader(*header);
+}
+
+/**
+ * @brief Write the image header to the storage device.
+ *
+ * Write image header associated with StreamNum to the storage device. Use this
+ * function to save the results of all IMAl functions. Header modifications are
+ * not saved until IMWrHdr is used! The contents of Title will be saved in the
+ * header according to the method indicated by ntflag. The minimum, maximum, and
+ * mean intensity - Min, Max, and Mean, respectively - of wavelength 0 are also
+ * saved in the header every time IMWrHdr is used.
+ *
+ * @param istream The input stream to be used for the operation.
+ * @param title The title to be saved in the header.
+ * @param ntflag The method to be used to save the title.
+ *  - 0: use Title as the only title
+ *  - 1: add Title to the end of the list
+ */
+inline void IMWrHdr(int istream, const char title[80], int ntflag, float dmin, float dmax,
+                    float dmean) {
+  DVFile& dvfile = getDVFile(istream);
+  IW_MRC_HEADER header = dvfile.getHeader();
+  header.amin = dmin;
+  header.amax = dmax;
+  header.amean = dmean;
+  if (ntflag == 0) {
+    // use Title as the only title
+    strncpy(header.label, title, 80);
+  } else if (ntflag == 1) {
+    // FIXME  this is wrong.
+    // Append title to the end of the list
+    std::string new_title = title;
+    new_title += " ";
+    new_title += header.label;
+    strncpy(header.label, new_title.c_str(), 80);
+  } else {
+    throw std::runtime_error("Invalid ntflag: " + std::to_string(ntflag));
+  }
+
+  dvfile.putHeader(header);
 }
 
 /**
@@ -445,8 +496,4 @@ inline void IMPutHdr(int istream, const IW_MRC_HEADER* header) {
  */
 inline void IMRtExHdrZWT(int istream, int iz, int iw, int it, int ival[], float rval[]) {
   std::cerr << "Warning: IMRtExHdrZWT is not implemented." << std::endl;
-}
-inline void IMWrHdr(int istream, const char title[80], int ntflag, float dmin, float dmax,
-                    float dmean) {
-  std::cerr << "Warning: IMWrHdr is not implemented." << std::endl;
 }
