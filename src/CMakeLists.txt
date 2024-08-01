@@ -81,33 +81,6 @@ endif(WIN32)
 message(STATUS "CUDA_NVCC_FLAGS: " ${CUDA_NVCC_FLAGS})
 
 
-if(BUILD_MRC OR BUILD_OTF_VIEWER)
-  message(STATUS "** Building WITH mrc support **")
-
-  if(WIN32)
-    set(PLATFORM win64)
-  else()
-    set(PLATFORM linux64)
-  endif(WIN32)
-
-  set(PRIISM_LIB_PATH "${CMAKE_SOURCE_DIR}/IVE/${PLATFORM}/LIB")
-  set(PRIISM_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/IVE/${PLATFORM}/INCLUDE")
-  include_directories(${PRIISM_INCLUDE_PATH})
-  link_directories(${PRIISM_LIB_PATH})
-
-  find_library(
-    IMLIB
-    NAMES imlib libimlib
-    PATHS ${PRIISM_LIB_PATH} REQUIRED)
-  find_library(
-    IVELIB
-    NAMES ive libive
-    PATHS ${PRIISM_LIB_PATH} REQUIRED)
-  add_definitions(-DMRC)
-else()
-  message(STATUS "** Building WITHOUT mrc support **")
-endif()
-
 add_subdirectory(Buffers)
 add_subdirectory(cudaSirecon)
 add_subdirectory(otf)
