@@ -22,16 +22,6 @@
 #define WZT_SEQUENCE 1 /* "interleaved", from R3D and others    */
 #define ZWT_SEQUENCE 2 /* new sequence. Unsupported as of 11/97 */
 
-/* Data Types. */
-#define IW_AS_IS -1
-#define IW_BYTE 0
-#define IW_SHORT 1
-#define IW_FLOAT 2
-#define IW_COMPLEX_SHORT 3
-#define IW_COMPLEX 4
-#define IW_EMTOM 5
-#define IW_USHORT 6
-#define IW_LONG 7
 
 static const std::unordered_map<int, size_t> pixelTypeSizes = {
     {IW_BYTE, sizeof(uint8_t)},      {IW_SHORT, sizeof(int16_t)},
