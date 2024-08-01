@@ -9,14 +9,6 @@
 #   includes the nvcc compiler For windows, you will need to install the CUDA
 #   toolkit manually
 #
-# 1. MRC/DV support (optional) If you want to build with MRC support add the IVE
-#   libraries to the src directory with the following paths: For Linux:
-#   src/IVE/linux64/INCLUDE src/IVE/linux64/LIB For Windows:
-#   src/IVE/win64/INCLUDE src/IVE/win64/LIB
-#
-# If you DON'T want to build with MRC or do not have access to the IVE libraries
-# please run cmake with the `-DBUILD_MRC=OFF` option
-#
 # To build the otfviewer, use `-DBUILD_OTF_VIEWER=ON`
 #
 # 1. run build.sh (linux) or bld.bat (windows) inspect those scripts for more

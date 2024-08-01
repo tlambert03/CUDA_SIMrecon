@@ -144,7 +144,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CUDA_PATH)/include;../Buffers;C:/libtiff;../IVE/win64/INCLUDE;C:/Boost/boost_1_55_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CUDA_PATH)/include;../Buffers;C:/libtiff;C:/Boost/boost_1_55_0</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -152,8 +152,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Boost\boost_1_55_0\lib;$(CUDA_PATH)\lib\x64;C:\libtiff;..\lapack\win64;..\IVE\win64\lib;$(SolutionDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>cuda.lib;cudart.lib;cufft.lib;libtiff.lib;liblapack.lib;libblas.lib;libimlib.lib;libive.lib;Buffers.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Boost\boost_1_55_0\lib;$(CUDA_PATH)\lib\x64;C:\libtiff;..\lapack\win64;$(SolutionDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cuda.lib;cudart.lib;cufft.lib;libtiff.lib;liblapack.lib;libblas.lib;Buffers.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>

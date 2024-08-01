@@ -1,10 +1,6 @@
 include_directories("${CMAKE_SOURCE_DIR}/cudaSirecon") # for CImg.h
 add_executable(makeotf radialft.cpp)
 
-if(BUILD_MRC OR BUILD_OTF_VIEWER)
-  target_link_libraries(makeotf ${IMLIB} ${IVELIB})
-endif()
-
 # ######## START findFFTW: https://github.com/egpbos/findFFTW ######
 
 configure_file(downloadFindFFTW.cmake.in findFFTW-download/CMakeLists.txt)
@@ -52,7 +48,7 @@ if(BUILD_OTF_VIEWER)
   include_directories(${PRIISM_INCLUDE_PATH})
   link_directories(${PRIISM_LIB_PATH})
   add_executable(otfviewer otfviewer.cpp)
-  target_link_libraries(otfviewer ${IMLIB} ${IVELIB} ${TIFF_LIBRARIES})
+  target_link_libraries(otfviewer ${TIFF_LIBRARIES})
 
   if(WIN32)
     if(${MSVC_VERSION} GREATER 1800)

@@ -63,17 +63,6 @@ void outputdata(int ostream_no, IW_MRC_HEADER *header, std::vector<std::complex<
 void mrc_file_write(float *buffer, int nx, int ny, int nz, float rlen, float zlen, int mode, int iwave, const char *files);
 int commandline(int argc, char *argv[], int * twolens, int *rescale, float *beaddiam, float *k0angle, float *linespacing, int *five_bands, int *nphases, int *interpkr, int *leavekz, int *do_compen, int *I2M_inc, std::string &I2Mfiles, float *background, int *bBgInExtHdr, int *order0gen, std::string &order0files, int *conjugate, float *na, float *nimm, int *ifixz, int *ifixr, unsigned *wavelength, float *dr, float *dz, int *bCoherentBSIM, int *bForcedPIshift, std::string &ifiles, std::string &ofiles, int *ifilein, int *ofilein);
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1900)
-// for IMLIB with vs >2015
-// https://stackoverflow.com/questions/30412951/unresolved-external-symbol-imp-fprintf-and-imp-iob-func-sdl2
-FILE _iob[] = {*stdin, *stdout, *stderr};
-
-extern "C" FILE *  __iob_func(void)
-{
-    return _iob;
-}
-
-#endif
 
 int main(int argc, char **argv)
 {
