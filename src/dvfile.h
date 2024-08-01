@@ -22,13 +22,11 @@
 #define WZT_SEQUENCE 1 /* "interleaved", from R3D and others    */
 #define ZWT_SEQUENCE 2 /* new sequence. Unsupported as of 11/97 */
 
-
 static const std::unordered_map<int, size_t> pixelTypeSizes = {
     {IW_BYTE, sizeof(uint8_t)},      {IW_SHORT, sizeof(int16_t)},
     {IW_FLOAT, sizeof(float)},       {IW_COMPLEX_SHORT, 2 * sizeof(int16_t)},
     {IW_COMPLEX, 2 * sizeof(float)}, {IW_EMTOM, sizeof(int16_t)},
     {IW_USHORT, sizeof(uint16_t)},   {IW_LONG, sizeof(int32_t)}};
-
 
 typedef struct IW_MRC_Header {
   int32_t nx, ny, nz;        // nz : nplanes*nwave*ntime
@@ -100,28 +98,17 @@ typedef struct IW_MRC_Header {
 
 class DVFile {
  private:
-  std::unique_ptr<std::ifstream> _file;
+  std::unique_ptr<std::fstream> _file;
   std::string _path;
   bool _big_endian;
   IW_MRC_Header hdr;
   bool closed = true;
 
-  void _validateZWT(int z, int w, int t) {
-    if (t >= hdr.num_times) {
-      throw std::runtime_error("Time index out of range");
-    }
-    if (w >= hdr.num_waves) {
-      throw std::runtime_error("Wavelength index out of range");
-    }
-    if (z >= hdr.num_planes()) {
-      throw std::runtime_error("Section index out of range");
-    }
-  }
-
  public:
+  // Constructor for opening an existing file
   DVFile(const std::string& path) {
     _path = path;
-    _file = std::make_unique<std::ifstream>(path, std::ios::binary);
+    _file = std::make_unique<std::fstream>(path, std::ios::in | std::ios::out | std::ios::binary);
     if (!_file->is_open()) {
       throw std::runtime_error("Failed to open file");
     }
@@ -142,6 +129,20 @@ class DVFile {
     _file->seekg(0);
     _file->read(reinterpret_cast<char*>(&hdr), sizeof(IW_MRC_Header));
     closed = false;
+  }
+
+  static std::unique_ptr<DVFile> createNew(const std::string& path) {
+    std::unique_ptr<DVFile> dvfile = std::make_unique<DVFile>();
+    dvfile->_path = path;
+    dvfile->_file = std::make_unique<std::fstream>(
+        path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+
+    if (!dvfile->_file->is_open()) {
+      throw std::runtime_error("Failed to create file");
+    }
+
+    dvfile->closed = false;
+    return dvfile;
   }
 
   // this is only here for the IVE API
@@ -167,9 +168,15 @@ class DVFile {
     readSec(array);
   }
 
-  size_t getPixelSize() {
-    return pixelTypeSizes.at(hdr.mode);
+  void writeSection(const void* array) {
+    if (closed) {
+      throw std::runtime_error("Cannot write to closed file. Please reopen with .open()");
+    }
+    size_t frame_size = hdr.ny * hdr.nx * getPixelSize();
+    _file->write(reinterpret_cast<const char*>(array), frame_size);
   }
+
+  size_t getPixelSize() { return pixelTypeSizes.at(hdr.mode); }
 
   void open() {
     if (closed) {
@@ -194,6 +201,15 @@ class DVFile {
 
   IW_MRC_Header getHeader() const { return hdr; }
 
+  void putHeader(const IW_MRC_Header& header) {
+    if (closed) {
+      throw std::runtime_error("Cannot write to closed file. Please reopen with .open()");
+    }
+    _file->seekp(0);
+    _file->write(reinterpret_cast<const char*>(&header), sizeof(IW_MRC_Header));
+    hdr = header;
+  }
+
   bool isClosed() const { return closed; }
 
   std::map<std::string, int> sizes() {
@@ -211,6 +227,19 @@ class DVFile {
       sizes[key] = d[key];
     }
     return sizes;
+  }
+
+ private:
+  void _validateZWT(int z, int w, int t) {
+    if (t >= hdr.num_times) {
+      throw std::runtime_error("Time index out of range");
+    }
+    if (w >= hdr.num_waves) {
+      throw std::runtime_error("Wavelength index out of range");
+    }
+    if (z >= hdr.num_planes()) {
+      throw std::runtime_error("Section index out of range");
+    }
   }
 };
 
@@ -251,6 +280,13 @@ inline int IMOpen(int istream, const char* name, const char* attrib) {
   if (std::string(attrib) == "ro") {
     try {
       dvfile_map[istream] = std::make_unique<DVFile>(name);
+    } catch (const std::exception& e) {
+      std::cerr << "Error: " << e.what() << std::endl;
+      return 1;  // Return non-zero to indicate failure
+    }
+  } else if (std::string(attrib) == "new") {
+    try {
+      dvfile_map[istream] = DVFile::createNew(name);
     } catch (const std::exception& e) {
       std::cerr << "Error: " << e.what() << std::endl;
       return 1;  // Return non-zero to indicate failure
@@ -384,10 +420,19 @@ inline void IMRdSec(int istream, void* ImgBuffer) {
   }
 }
 
-inline void IMPutHdr(int istream, const IW_MRC_HEADER* header) {
-  std::cerr << "Warning: IMPutHdr is not implemented." << std::endl;
+inline void IMWrSec(int istream, const void* array) {
+  try {
+    getDVFile(istream).writeSection(array);
+  } catch (const std::runtime_error& e) {
+    std::cerr << "Error writing section: " << e.what() << std::endl;
+    // Handle the error appropriately, e.g., by rethrowing or returning an error code
+    throw;  // Rethrow the exception to propagate it further
+  }
 }
-// not yet implemented ///////////////////////////////////
+
+inline void IMPutHdr(int istream, const IW_MRC_HEADER* header) {
+  getDVFile(istream).putHeader(*header);
+}
 
 /**
  * @brief Return extended header values for a particular Z section, wavelength,
@@ -404,7 +449,4 @@ inline void IMRtExHdrZWT(int istream, int iz, int iw, int it, int ival[], float 
 inline void IMWrHdr(int istream, const char title[80], int ntflag, float dmin, float dmax,
                     float dmean) {
   std::cerr << "Warning: IMWrHdr is not implemented." << std::endl;
-}
-inline void IMWrSec(int istream, const void* array) {
-  std::cerr << "Warning: IMWrSec is not implemented." << std::endl;
 }

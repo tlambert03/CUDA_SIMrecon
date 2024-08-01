@@ -1061,13 +1061,13 @@ void SIM_Reconstructor::openFiles() {
     // TIFF files are not opened till loadAndRescaleImage()
     throw std::runtime_error("No matching input TIFF or MRC files not found");
 
-  // // Create output file in MRC mode;
-  // // in TIFF mode, output files are not created until writeResult() is called
-  // if (!m_myParams.bTIFF)
-  //   if (IMOpen(ostream_no, m_myParams.ofiles.c_str(), "new")) {
-  //     std::cerr << "File " << m_myParams.ofiles << " can not be created.\n";
-  //     throw std::runtime_error("Error creating output file");
-  //   }
+  // Create output file in MRC mode;
+  // in TIFF mode, output files are not created until writeResult() is called
+  if (!m_myParams.bTIFF)
+    if (IMOpen(ostream_no, m_myParams.ofiles.c_str(), "new")) {
+      std::cerr << "File " << m_myParams.ofiles << " can not be created.\n";
+      throw std::runtime_error("Error creating output file");
+    }
 
   if (m_myParams.bTIFF) {
     // will throw CImgIOException if file cannot be opened
@@ -1153,36 +1153,36 @@ void SIM_Reconstructor::setup_common()
          m_imgParams.nz0, m_imgParams.nwaves);
   printf("dxy=%f, dz=%f um\n", m_imgParams.dxy, m_imgParams.dz);
 
-  // // Initialize headers for intermediate output files if requested
-  // if (!m_myParams.bTIFF) {
-  //   if (m_myParams.bSaveAlignedRaw) {
-  //     memcpy(&aligned_header, &m_in_out_header, sizeof(m_in_out_header));
-  //     IMOpen(aligned_stream_no, m_myParams.fileRawAligned.c_str(), "new");
-  //     aligned_header.mode = IW_FLOAT;
-  //     aligned_header.nx = m_imgParams.nx;
-  //     aligned_header.inbsym = 0;
-  //     IMPutHdr(aligned_stream_no, &aligned_header);
-  //   }
-  //   if (m_myParams.bSaveSeparated) {
-  //     memcpy(&sep_header, &m_in_out_header, sizeof(m_in_out_header));
-  //     IMOpen(separated_stream_no, m_myParams.fileSeparated.c_str(), "new");
-  //     sep_header.nx = m_imgParams.nx/2+1;    // saved will be separated FFTs
-  //     sep_header.mode = IW_COMPLEX;
-  //     sep_header.inbsym = 0;
-  //     IMPutHdr(separated_stream_no, &sep_header);
-  //   }
-  //   if (m_myParams.bSaveOverlaps) {
-  //     memcpy(&overlaps_header, &m_in_out_header, sizeof(m_in_out_header));
-  //     IMOpen(overlaps_stream_no, m_myParams.fileOverlaps.c_str(), "new");
-  //     overlaps_header.nz = m_imgParams.nz*2*m_myParams.ndirs*m_imgParams.ntimes*m_imgParams.nwaves;
-  //     overlaps_header.nx = m_imgParams.nx;
-  //     overlaps_header.num_waves = 2;  // save overlap 0 and 1 as wave 0 and 1 respectively
-  //     overlaps_header.interleaved = WZT_SEQUENCE;
-  //     overlaps_header.mode = IW_COMPLEX;   // saved will be full-complex overlaps in real space
-  //     overlaps_header.inbsym = 0;
-  //     IMPutHdr(overlaps_stream_no, &overlaps_header);
-  //   }
-  // }
+  // Initialize headers for intermediate output files if requested
+  if (!m_myParams.bTIFF) {
+    if (m_myParams.bSaveAlignedRaw) {
+      memcpy(&aligned_header, &m_in_out_header, sizeof(m_in_out_header));
+      IMOpen(aligned_stream_no, m_myParams.fileRawAligned.c_str(), "new");
+      aligned_header.mode = IW_FLOAT;
+      aligned_header.nx = m_imgParams.nx;
+      aligned_header.inbsym = 0;
+      IMPutHdr(aligned_stream_no, &aligned_header);
+    }
+    if (m_myParams.bSaveSeparated) {
+      memcpy(&sep_header, &m_in_out_header, sizeof(m_in_out_header));
+      IMOpen(separated_stream_no, m_myParams.fileSeparated.c_str(), "new");
+      sep_header.nx = m_imgParams.nx/2+1;    // saved will be separated FFTs
+      sep_header.mode = IW_COMPLEX;
+      sep_header.inbsym = 0;
+      IMPutHdr(separated_stream_no, &sep_header);
+    }
+    if (m_myParams.bSaveOverlaps) {
+      memcpy(&overlaps_header, &m_in_out_header, sizeof(m_in_out_header));
+      IMOpen(overlaps_stream_no, m_myParams.fileOverlaps.c_str(), "new");
+      overlaps_header.nz = m_imgParams.nz*2*m_myParams.ndirs*m_imgParams.ntimes*m_imgParams.nwaves;
+      overlaps_header.nx = m_imgParams.nx;
+      overlaps_header.num_waves = 2;  // save overlap 0 and 1 as wave 0 and 1 respectively
+      overlaps_header.interleaved = WZT_SEQUENCE;
+      overlaps_header.mode = IW_COMPLEX;   // saved will be full-complex overlaps in real space
+      overlaps_header.inbsym = 0;
+      IMPutHdr(overlaps_stream_no, &overlaps_header);
+    }
+  }
 
   m_myParams.norders = 0;
   if (m_myParams.norders_output != 0) {

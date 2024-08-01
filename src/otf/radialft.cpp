@@ -124,11 +124,11 @@ int main(int argc, char **argv)
     std::cout << "Output OTF file name: ";
     getline(std::cin, ofiles);
   }
-  // if (!bTIFF)
-  //   if (IMOpen(ostream_no, ofiles.c_str(), "new")) {
-  //     std::cerr << "File " << ofiles << " cannot be created.\n";
-  //     return -1;
-  //   }
+  if (!bTIFF)
+    if (IMOpen(ostream_no, ofiles.c_str(), "new")) {
+      std::cerr << "File " << ofiles << " cannot be created.\n";
+      return -1;
+    }
 
   unsigned nx, nxExtra, ny, nz, nxy;
   if (bTIFF) {
@@ -1526,10 +1526,10 @@ void mrc_file_write(float *buffer, int nx, int ny, int nz, float rlen, float zle
 
   printf("Writing output file: %s\n", files);
 
-  // if (IMOpen(ostream_no, files, "new")) {
-  //   fprintf(stderr, "File %s can not be created.\n", files);
-  //   exit(-1);
-  // }
+  if (IMOpen(ostream_no, files, "new")) {
+    fprintf(stderr, "File %s can not be created.\n", files);
+    exit(-1);
+  }
 
   dimx = nx;
   dimy = ny;
