@@ -10,5 +10,5 @@ cmake ${CMAKE_ARGS} \
     -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX \
     ../src
 
-make -j 2
-make install
+make -j 4
+# make install

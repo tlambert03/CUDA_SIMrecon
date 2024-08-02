@@ -1,6 +1,10 @@
+#ifndef DVFILE_H
+#define DVFILE_H
+
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -539,3 +543,5 @@ inline void IMWrHdr(int istream, const char title[80], int ntflag, float dmin, f
 inline void IMRtExHdrZWT(int istream, int iz, int iw, int it, int ival[], float rval[]) {
   std::cerr << "Warning: IMRtExHdrZWT is not implemented." << std::endl;
 }
+
+#endif  // DVFILE_H
