@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     int istream_no = 1;
     // Suppress IM header printout; somehow only in this mode would the rest of
     // IM calls go well on Windows.
-    IMAlPrt(0);
+    // IMAlPrt(0);  // not needed with our dvfile implementation
 
     if (IMOpen(istream_no, argv[optind], "ro")) {
       std::cerr << "File " << argv[optind] << " cannot be opened.\n";

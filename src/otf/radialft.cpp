@@ -81,8 +81,6 @@ int main(int argc, char **argv)
   int bForcedPIshift=0;
 
   IW_MRC_HEADER header, otfheader;
-  IMAlPrt(0);       
-
 
   interpkr[0] = 0;
   interpkr[1] = 0;

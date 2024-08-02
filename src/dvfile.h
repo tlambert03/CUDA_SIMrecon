@@ -1,12 +1,10 @@
-#pragma once
-
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <unordered_map>
 
-/* Data Types. */
+// Data Types
 #define IW_AS_IS -1
 #define IW_BYTE 0
 #define IW_SHORT 1
@@ -17,10 +15,20 @@
 #define IW_USHORT 6
 #define IW_LONG 7
 
-/* image sequence definitions */
+// image sequence definitions
 #define ZTW_SEQUENCE 0 /* "non-interleaved", by defintion       */
 #define WZT_SEQUENCE 1 /* "interleaved", from R3D and others    */
 #define ZWT_SEQUENCE 2 /* new sequence. Unsupported as of 11/97 */
+
+// Possible values for the file type
+#define IM_NORMAL_IMAGES 0
+#define IM_TILT_SERIES 1
+#define IM_STEREO_TILT_SERIES 2
+#define IM_AVERAGED_IMAGES 3
+#define IM_AVERAGED_STEREO_PAIRS 4
+#define IM_EM_TILT_SERIES 5
+#define IM_MULTIPOSITION 20
+#define IM_PUPIL_FUNCTION 8000
 
 static const std::unordered_map<int, size_t> pixelTypeSizes = {
     {IW_BYTE, sizeof(uint8_t)},      {IW_SHORT, sizeof(int16_t)},
@@ -29,7 +37,7 @@ static const std::unordered_map<int, size_t> pixelTypeSizes = {
     {IW_USHORT, sizeof(uint16_t)},   {IW_LONG, sizeof(int32_t)}};
 
 typedef struct IW_MRC_Header {
-  int32_t nx, ny, nz;        // nz : nplanes*nwave*ntime
+  int32_t nx, ny, nz;        // nz=num_planes*num_waves*num_times
   int32_t mode;              // data type
   int32_t nxst, nyst, nzst;  // index of the first col/row/section
   int32_t mx, my, mz;        // number of intervals in x/y/z
@@ -56,10 +64,10 @@ typedef struct IW_MRC_Header {
 
   std::string sequence_order() const {
     switch (interleaved) {
-      case 0: return "CTZ";
-      case 1: return "TZC";
-      case 2: return "TCZ";
-      default: return "CTZ";
+      case ZTW_SEQUENCE: return "ZTW";
+      case WZT_SEQUENCE: return "WZT";
+      case ZWT_SEQUENCE: return "ZWT";
+      default: return "ZTW";
     }
   }
 
@@ -67,15 +75,15 @@ typedef struct IW_MRC_Header {
 
   std::string image_type() const {
     switch (file_type) {
-      case 0:
+      case IM_NORMAL_IMAGES: return "NORMAL";
       case 100: return "NORMAL";
-      case 1: return "TILT_SERIES";
-      case 2: return "STEREO_TILT_SERIES";
-      case 3: return "AVERAGED_IMAGES";
-      case 4: return "AVERAGED_STEREO_PAIRS";
-      case 5: return "EM_TILT_SERIES";
-      case 20: return "MULTIPOSITION";
-      case 8000: return "PUPIL_FUNCTION";
+      case IM_TILT_SERIES: return "TILT_SERIES";
+      case IM_STEREO_TILT_SERIES: return "STEREO_TILT_SERIES";
+      case IM_AVERAGED_IMAGES: return "AVERAGED_IMAGES";
+      case IM_AVERAGED_STEREO_PAIRS: return "AVERAGED_STEREO_PAIRS";
+      case IM_EM_TILT_SERIES: return "EM_TILT_SERIES";
+      case IM_MULTIPOSITION: return "MULTIPOSITION";
+      case IM_PUPIL_FUNCTION: return "PUPIL_FUNCTION";
       default: return "UNKNOWN";
     }
   }
@@ -88,7 +96,6 @@ typedef struct IW_MRC_Header {
     std::cout << "  Pixel size: " << mode << std::endl;
     std::cout << "  Pixel spacing: " << xlen << "x" << ylen << "x" << zlen << std::endl;
     std::cout << "  mxyz: " << mx << "x" << my << "x" << mz << std::endl;
-    std::cout << "  Cell angles: " << alpha << "x" << beta << "x" << gamma << std::endl;
     std::cout << "  Min/Max/Mean: " << amin << "/" << amax << "/" << amean << std::endl;
     std::cout << "  Image type: " << image_type() << std::endl;
     std::cout << "  Sequence order: " << sequence_order() << std::endl;
@@ -148,22 +155,71 @@ class DVFile {
     return dvfile;
   }
 
-  // this is only here for the IVE API
-  void setCurrentZWT(int z, int w, int t) {
-    _validateZWT(z, w, t);
+  // Method to read the extended header
+  void readExtendedHeader() {
+    if (hdr.inbsym <= 0) {
+      throw std::runtime_error("No extended header present.");
+    }
 
-    size_t frame_size = hdr.ny * hdr.nx * getPixelSize();
-    int header_size = 1024 + hdr.inbsym;
-    int section_offset = (t * hdr.num_waves * hdr.num_planes() + w * hdr.num_planes() + z);
-    _file->seekg(header_size + section_offset * frame_size);
+    // Calculate the size of the extended header
+    int num_sections = hdr.nz;
+    size_t extended_header_size = (hdr.nint + hdr.nreal) * num_sections * sizeof(int32_t);
+
+    // Allocate buffer for the extended header
+    size_t bufferSize = extended_header_size / sizeof(int32_t);
+    std::vector<int32_t> extended_header(bufferSize);
+
+    // Read the extended header
+    _file->seekg(sizeof(IW_MRC_Header));
+    _file->read(reinterpret_cast<char*>(extended_header.data()), extended_header_size);
+
+    if (!_file->good()) {
+      throw std::runtime_error("Failed to read the extended header.");
+    }
+
+    // Optionally, process the extended header based on your specific format
+  }
+
+  /**
+   * @brief Calculate the offset of a section in the file.
+   *
+   * 0 (C/C++ macro is ZTW_SEQUENCE)
+   * This is the normal arrangement for processed images. Sometimes referred to as
+   * "non-interleaved". is = iz + nz * (it + nt * iw) Reversing that gives iz = is modulo nz, iw =
+   * is / (nz * nt), and it = (is / nz) modulo nt. 1 (C/C++ macro is WZT_SEQUENCE) This is the
+   * typical arrangement for images acquired from a microscope. Sometimes referred to as
+   * "interleaved" is = iw + nw * (iz + nz * it). Reversing that gives iz = (is / nw) modulo nz, iw
+   * = is modulo nw, and it = is / ( nw * nz). 2 (C/C++ macro is ZWT_SEQUENCE) Although not widely
+   * used, ZWT will find uses with certain processing algorithms. is = iz + nz * (iw + nw * it).
+   * Reversing that gives iz = is modulo nz, iw = (is / nz) modulo nw, and it = is / (nz * nw).
+   */
+  int sectionOffset(int iz, int iw, int it) {
+    _validateZWT(iz, iw, it);
+    int is;
+    int nz = hdr.num_planes();
+    int nt = hdr.num_times;
+    int nw = hdr.num_waves;
+    switch (hdr.interleaved) {
+      case WZT_SEQUENCE: is = iw + nw * (iz + nz * it); break;
+      case ZWT_SEQUENCE: is = iz + nz * (iw + nw * it); break;
+      case ZTW_SEQUENCE:
+      default: is = iz + nz * (it + nt * iw); break;
+    }
+    return is;
+  }
+
+  // Set the read/write file pointer to the beginning of a section
+  void setCurrentZWT(int z, int w, int t) {
+    int offset = sizeof(IW_MRC_Header) + hdr.inbsym + sectionOffset(z, w, t) * _sectionSize();
+    _file->seekg(offset);
+    _file->seekp(offset);
   }
 
   void readSec(void* array) {
     if (closed) {
       throw std::runtime_error("Cannot read from closed file. Please reopen with .open()");
     }
-    size_t frame_size = hdr.ny * hdr.nx * getPixelSize();
-    _file->read(reinterpret_cast<char*>(array), frame_size);
+    _file->read(reinterpret_cast<char*>(array), _sectionSize());
   }
 
   void readSec(void* array, int t, int w, int z) {
@@ -171,12 +227,12 @@ class DVFile {
     readSec(array);
   }
 
+  // call setCurrentZWT to set the z/w/t plane before calling this
   void writeSection(const void* array) {
     if (closed) {
       throw std::runtime_error("Cannot write to closed file. Please reopen with .open()");
     }
-    size_t frame_size = hdr.ny * hdr.nx * getPixelSize();
-    _file->write(reinterpret_cast<const char*>(array), frame_size);
+    _file->write(reinterpret_cast<const char*>(array), _sectionSize());
   }
 
   size_t getPixelSize() { return pixelTypeSizes.at(hdr.mode); }
@@ -215,24 +271,10 @@ class DVFile {
 
   bool isClosed() const { return closed; }
 
-  std::map<std::string, int> sizes() {
-    int num_real_z =
-        hdr.nz / (hdr.num_waves ? hdr.num_waves : 1) / (hdr.num_times ? hdr.num_times : 1);
-    std::map<std::string, int> d = {{"T", hdr.num_times},
-                                    {"C", hdr.num_waves},
-                                    {"Z", num_real_z},
-                                    {"Y", hdr.ny},
-                                    {"X", hdr.nx}};
-    std::string axes = hdr.sequence_order() + "YX";
-    std::map<std::string, int> sizes;
-    for (char c : axes) {
-      std::string key(1, c);  // Convert char to std::string
-      sizes[key] = d[key];
-    }
-    return sizes;
-  }
-
  private:
+  // Return the size of a frame/section in bytes
+  size_t _sectionSize() { return hdr.ny * hdr.nx * getPixelSize(); }
+
   void _validateZWT(int z, int w, int t) {
     if (t >= hdr.num_times) {
       throw std::runtime_error("Time index out of range");
