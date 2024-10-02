@@ -1,5 +1,5 @@
 nimm=1.515
-fastSI=1
+fastSI=0
 background=0
 wiener=0.001
 k0angles=0.804300,1.8555,-0.238800
