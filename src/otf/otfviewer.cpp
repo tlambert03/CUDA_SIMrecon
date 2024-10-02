@@ -9,18 +9,6 @@ using namespace cimg_library;
 #include <string>
 #include <IMInclude.h>
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1900)
-// for IMLIB with vs >2015
-// https://stackoverflow.com/questions/30412951/unresolved-external-symbol-imp-fprintf-and-imp-iob-func-sdl2
-FILE _iob[] = {*stdin, *stdout, *stderr};
-
-extern "C" FILE *  __iob_func(void)
-{
-    return _iob;
-}
-
-#endif
-
 int main(int argc, char *argv[])
 {
 
@@ -64,7 +52,7 @@ int main(int argc, char *argv[])
     int istream_no = 1;
     // Suppress IM header printout; somehow only in this mode would the rest of
     // IM calls go well on Windows.
-    IMAlPrt(0);
+    // IMAlPrt(0);  // not needed with our dvfile implementation
 
     if (IMOpen(istream_no, argv[optind], "ro")) {
       std::cerr << "File " << argv[optind] << " cannot be opened.\n";

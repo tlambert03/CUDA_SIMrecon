@@ -105,9 +105,7 @@ private:
   int m_zoffset;
   po::options_description m_progopts;
   po::variables_map m_varsmap;
-  #ifdef MRC
   IW_MRC_HEADER m_in_out_header;
-  #endif
   bool m_OTFfile_valid;
 
   int m_argc;

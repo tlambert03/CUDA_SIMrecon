@@ -1,19 +1,15 @@
-del /Q cmake_build
+@REM rmdir /S /Q cmake_build
 
-@REM if not exist src\IVE\ (
-@REM     powershell -Command "Invoke-WebRequest https://www.dropbox.com/s/2twvw0go3dr3aim/IVE.zip -OutFile IVE.zip"
-@REM     powershell -Command "Expand-Archive IVE.zip -DestinationPath src\"
-@REM     del IVE.zip )
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 
-mkdir cmake_build
+@REM mkdir cmake_build
 cd cmake_build
 
-cmake -G Ninja ^
-    -DBUILD_MRC=ON ^
-    -DBUILD_OTF_VIEWER=OFF ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%/Library" ^
-    ../src
+@REM cmake -G Ninja ^
+@REM     -DBUILD_OTF_VIEWER=OFF ^
+@REM     -DCMAKE_BUILD_TYPE=Release ^
+@REM     -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%/Library" ^
+@REM     ../src
 
 ninja
-ninja install
+@REM ninja install

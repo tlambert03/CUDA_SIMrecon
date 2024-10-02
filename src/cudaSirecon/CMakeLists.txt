@@ -3,8 +3,6 @@ include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/../Buffers")
 
 find_package(LAPACK REQUIRED)
-message(STATUS "IMLIB: " ${IMLIB})
-message(STATUS "IVELIB: " ${IVELIB})
 message(STATUS "LEG_STDIO: " ${LEG_STDIO})
 message(STATUS "LAPACK_FOUND: " ${LAPACK_FOUND})
 
@@ -23,8 +21,7 @@ target_link_libraries(
   ${BOOST_LIBRARIES}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
-  ${IMLIB}
-  ${IVELIB})
+)
   
   
 # cudasirecon executable file
