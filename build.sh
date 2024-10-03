@@ -20,4 +20,4 @@ cmake ${CMAKE_ARGS} \
     ../src
 
 make -j 2
-make install
+# make install

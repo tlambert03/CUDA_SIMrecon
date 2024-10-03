@@ -1,5 +1,6 @@
 #include "cudaSireconImpl.h" // must come first!
 #include "SIM_reconstructor.hpp"
+#include "version.h"
 
 #ifdef _WIN32
 #define DllExport __declspec(dllexport)
@@ -67,5 +68,9 @@ extern "C"
   DllExport void SR_closeFiles(SIM_Reconstructor *sr)
   {
     sr->closeFiles();
+  }
+  DllExport const char* get_version()
+  {
+    return PROJECT_VERSION;
   }
 }

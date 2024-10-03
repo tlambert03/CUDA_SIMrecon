@@ -1,6 +1,0 @@
-// the configured options and settings for cudasirecon
-// This will be populated with variables from the project() setting
-// in CMakeLists.txt
-#define cudasirecon_VERSION_MAJOR @cudasirecon_VERSION_MAJOR@
-#define cudasirecon_VERSION_MINOR @cudasirecon_VERSION_MINOR@
-#define cudasirecon_VERSION_PATCH @cudasirecon_VERSION_PATCH@

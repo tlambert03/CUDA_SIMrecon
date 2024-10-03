@@ -31,24 +31,27 @@
 option(BUILD_MRC "Build cudasirecon with MRC support" ON)
 option(BUILD_OTF_VIEWER "Build OTF viewer (requires X11)" OFF)
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required (VERSION 3.20)
 
 # This is the one place where version is set
-project(cudasirecon VERSION 1.2.0)
-configure_file("${PROJECT_SOURCE_DIR}/cudasireconConfig.h.in" "${PROJECT_SOURCE_DIR}/cudasireconConfig.h")
+project(cudasirecon VERSION 1.2.0 LANGUAGES CXX CUDA)
+# the single source of our version is above in the project() command
+# this header makes the version available to the compiler 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/version.h
+  @ONLY
+)
+
 include_directories("${PROJECT_SOURCE_DIR}")
 
-enable_language(CUDA)
 enable_testing()
 
 
-if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES "52;60;61;70;72;75")
-endif()
-find_package(CUDA REQUIRED)
 find_package(CUDAToolkit REQUIRED)
-message(STATUS "FOUND CUDA: " ${CUDAToolkit_BIN_DIR})
-include_directories(${CUDAToolkit_INCLUDE_DIRS})
+message(STATUS "CUDA version : ${CMAKE_CUDA_COMPILER_VERSION}")
+set(CMAKE_CUDA_ARCHITECTURES all-major)
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 add_definitions(-Dcimg_display=0)
 
@@ -64,10 +67,7 @@ if(OPENMP_FOUND)
 endif()
 
 find_package(TIFF)
-find_package(
-  Boost
-  COMPONENTS program_options filesystem system
-  REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options filesystem system)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
